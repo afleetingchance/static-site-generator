@@ -9,13 +9,16 @@ def main():
     if not os.path.exists('./static'):
         print("Error: static directory is required")
         sys.exit(1)
-    if not os.path.exists('./public/'):
-        os.system('mkdir public')
-    
-    os.system('rm -rf ./public/*')
+    if not os.path.exists('./docs/'):
+        os.system('mkdir docs')
 
-    copy_files(os.listdir('./static'), './static', './public')
-    generate_pages_recursive('./content', 'template.html', './public')
+    basepath = sys.argv[1] if len(sys.argv) > 1 else '/'
+    print(basepath)
+    
+    os.system('rm -rf ./docs/*')
+
+    copy_files(os.listdir('./static'), './static', './docs')
+    generate_pages_recursive('./content', 'template.html', './docs', basepath)
 
     
 def copy_files(paths, working_dir, dest_dir):
@@ -37,7 +40,7 @@ def extract_title(markdown_text):
     
     raise Exception('No title found')
 
-def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
+def generate_pages_recursive(dir_path_content, template_path, dest_dir_path, basepath):
     paths = os.listdir(dir_path_content)
 
     for path in paths:
@@ -46,11 +49,11 @@ def generate_pages_recursive(dir_path_content, template_path, dest_dir_path):
 
         if os.path.isfile(full_path):
             dest_filename, _ = os.path.splitext(full_dest_path)
-            generate_page(full_path, template_path, f'{dest_filename}.html')
+            generate_page(full_path, template_path, f'{dest_filename}.html', basepath)
         else:
-            generate_pages_recursive(full_path, template_path, full_dest_path)
+            generate_pages_recursive(full_path, template_path, full_dest_path, basepath)
 
-def generate_page(from_path, template_path, dest_path):
+def generate_page(from_path, template_path, dest_path, basepath):
     print(f'Generating page from {from_path} to {dest_path} using {template_path}')
     
     with open(from_path, 'r') as file:
@@ -61,8 +64,10 @@ def generate_page(from_path, template_path, dest_path):
     html_content = markdown_to_html_node(markdown).to_html()
     title = extract_title(markdown)
 
-    template = template.replace(r'{{ Title }}', title)
-    template = template.replace(r'{{ Content }}', html_content)
+    template = template.replace('{{ Title }}', title)
+    template = template.replace('{{ Content }}', html_content)
+    template = template.replace('href="/', f'href="{basepath}')
+    template = template.replace('src="/', f'src="{basepath}')
 
     if not os.path.exists(dest_path):
         create_directory_from_path(dest_path)
