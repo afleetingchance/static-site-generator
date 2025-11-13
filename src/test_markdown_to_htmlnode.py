@@ -62,6 +62,7 @@ the **same** even with inline stuff
     def test_quoteblock(self):
         md = """
             > This text some _italic words_
+            >
             > And some **bold words** too
         """
 
@@ -69,7 +70,7 @@ the **same** even with inline stuff
         html = node.to_html()
         self.assertEqual(
             html,
-            "<div><blockquote><q>This text some <i>italic words</i></q><q>And some <b>bold words</b> too</q></blockquote></div>",
+            "<div><blockquote>This text some <i>italic words</i> And some <b>bold words</b> too</blockquote></div>",
         )
 
     def test_unorderedblock(self):

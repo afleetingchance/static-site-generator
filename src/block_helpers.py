@@ -16,7 +16,7 @@ def block_to_block_type(text_block):
         return BlockTypes.HEADING
     elif re.match(r'^\`\`\`.*?\`\`\`$', text_block, re.DOTALL):
         return BlockTypes.CODE
-    elif reduce(lambda acc, line: acc and re.match(r'^\> ', line.strip()), text_block.split('\n'), True):
+    elif reduce(lambda acc, line: acc and re.match(r'^\>', line.strip()), text_block.split('\n'), True):
         return BlockTypes.QUOTE
     elif reduce(lambda acc, line: acc and re.match(r'^\- ', line.strip()), text_block.split('\n'), True):
         return BlockTypes.UNORDERED_LIST
@@ -52,10 +52,12 @@ def block_to_code_parent_node(block):
     return ParentNode('pre', [ParentNode('code', children)])
 
 def block_to_quote_parent_node(block):
-    block_items = list(map(lambda item: re.match(r'^\> (.*?)$', item.strip()).group(1), block.split('\n')))
+    block_items = list(map(lambda item: re.match(r'^\>(?:\s(\S.*?)|\s*)$', item.strip()).group(1), block.split('\n')))
     children = []
     for item in block_items:
-        children.append(ParentNode('q', markdown_to_children(item)))
+        if item is None:
+            item = ' '
+        children.extend(markdown_to_children(item))
 
     return ParentNode('blockquote', children)
 
