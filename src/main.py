@@ -1,26 +1,28 @@
-from textnode import *
-from leafnode import LeafNode
+import os
+import sys
+import shutil
 
 def main():
-    node = TextNode('This is some anchor text', TextType.LINK, 'https://www.boot.dev')
-    print(node)
+    if not os.path.exists('./static'):
+        print("Error: static directory is required")
+        sys.exit(1)
+    if not os.path.exists('./public/'):
+        os.system('mkdir public')
+    
+    os.system('rm -rf ./public/*')
 
-def text_node_to_html_node(text_node):
-    match (text_node.text_type):
-        case TextType.PLAIN:
-            return LeafNode(None, text_node.text)
-        case TextType.BOLD:
-            return LeafNode('b', text_node.text)
-        case TextType.ITALIC:
-            return LeafNode('i', text_node.text)
-        case TextType.CODE:
-            return LeafNode('code', text_node.text)
-        case TextType.LINK:
-            return LeafNode('a', text_node.text, {'href': text_node.url})
-        case TextType.IMAGE:
-            return LeafNode('img', '', {'src': text_node.url, 'alt': text_node.text})
-        case _:
-            raise TypeError('Invalid text type')
+    copy_files(os.listdir('./static'), './static', './public')
+    
+def copy_files(paths, working_dir, dest_dir):
+    for path in paths:
+        full_path = os.path.join(working_dir, path)
+        if os.path.isfile(full_path):
+            print(f'Copying... {full_path}')
+            shutil.copy(full_path, dest_dir)
+        else:
+            full_dest_path = os.path.join(dest_dir, path)
+            print(f'Going into... {full_path}')
+            copy_files(os.listdir(full_path), full_dest_path)
 
 if __name__ == '__main__':
     main()
